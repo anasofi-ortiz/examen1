@@ -1,0 +1,64 @@
+# ejercicio 4 
+
+# import numpy as np
+# import matplotlib.pyplot as plt
+# %matplotlib inline
+# import pandas as pd
+
+# x1 = 1.5 + 0.5*np.random.random((100,1))
+# x2 = 45 + 70*np.random.random((100,1))
+# X = np.concatenate((x1, x2), axis = 1)
+# Y = (X[:, 1]/X[:, 0]**2 > 25*np.ones((100,)))*1
+
+
+# plt.figure(figsize = (8,6))
+# plt.scatter(X[:,0], X[:,1], c=Y)
+# plt.show()
+
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import scipy.optimize as opt
+
+def fun_log(z):
+    return 1/(1+np.exp(-z))
+
+def reg_log(B, X):
+    Xa = np.append(np.ones((X.shape[0],1)), X, axis=1)
+    return fun_log(Xa.dot(B))
+  
+x1 = 1.5 + 0.5*np.random.random((100,1))
+x2 = 45 + 70*np.random.random((100,1))
+X = np.concatenate((x1, x2), axis = 1)
+Y = (X[:, 1]/X[:, 0]**2 > 25*np.ones((100,)))*1
+
+plt.figure(figsize = (8,6))
+plt.scatter(X[:,0], X[:,1], c=Y)
+plt.show()
+
+def fun_obj(B, X, Y):
+    Yhat = 0.99999*reg_log(B, X)
+    return np.mean(-Y*np.log(Yhat)-(1-Y)*np.log(1-Yhat))
+
+B0 = np.zeros((3,))
+
+res_clas = opt.minimize(fun_obj, B0, args=(X,Y))
+B = res_clas.x
+
+x = np.arange(1.5, 2.5, 0.05)
+y = np.arange(40, 120, 0.05)
+Xm, Ym = np.meshgrid(x, y)
+m,n = np.shape(Xm)
+Xmr = np.reshape(Xm,(m*n,1))
+Ymr = np.reshape(Ym,(m*n,1))
+
+Xproof = np.append(Xmr,Ymr,axis=1)
+
+Yg = reg_log(B, Xproof)
+Z = np.reshape(Yg, (m,n))
+Z = np.round(Z)
+
+plt.figure(figsize=(10,10))
+plt.contour(Xm, Ym, Z)
+plt.scatter(X[:, 0],X[:, 1], c=Y, edgecolors='w')
+plt.show()
